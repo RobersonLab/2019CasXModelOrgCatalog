@@ -1,0 +1,308 @@
+---
+title: "Model org -- general"
+author: "Eli"
+date: "March 8, 2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libraries}
+library( here )
+library( tidyverse )
+library( reshape2 )
+library( knitr )
+library( UpSetR )
+```
+
+```{r set_figure_output}
+figure_directory <- paste0( here::here( 'figures' ), '/' )
+figure_directory
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	fig.path = figure_directory,
+	fig.keep = 'all',
+	dpi = 300,
+	fig.width = 11,
+	fig.height = 8.5,
+	#dev = 'tiff'
+	dev = 'png'
+)
+```
+
+```{r ggplot_modifiers}
+source( file = here::here( "ggplot_modifiers.R" ) )
+```
+
+```{r helper_tbl}
+order_levels <- c( 'Sc', 'Ce', 'Dm', 'Dr', 'Mm', 'Rn', 'Hs' )
+
+samples <- read_tsv( file = here::here( "names_experiments_table.txt" ) ) %>%
+  filter( global == TRUE ) %>%
+  mutate( .data = ., abbreviation = factor( abbreviation, levels = order_levels ) )
+
+short_name_levels <- samples %>%
+  as.data.frame( . ) %>%
+  column_to_rownames( df = ., var = 'abbreviation' ) %>%
+  .[ order_levels, 'short_name' ]
+```
+
+# General sites information
+
+```{r total_sites_table}
+total_sites <- tibble()
+
+for (idx in 1:dim( samples )[1]) {
+  curr_name <- samples$filename[ idx ]
+  curr_fname <- paste0( curr_name, "_site_count.csv" )
+  curr_fpath <- here::here( 'R_analysis', curr_fname )
+  
+  temp <- read_csv( file = curr_fpath ) %>%
+    cbind( ., short_name = samples$short_name[ idx ] )
+  
+  total_sites <- rbind( total_sites, temp )
+}
+
+total_sites <- mutate( .data = total_sites, percent_unique = sprintf( fmt = "%.2f", ( unique_sites / total_sites ) * 100.0 ) )
+
+sum_total <- sum( total_sites$total_sites )
+sum_unique <- sum( total_sites$unique_sites )
+```
+
+## Table - sites identified
+```{r table_sites_general}
+select( .data = total_sites, short_name, total_sites, unique_sites, percent_unique ) %>%
+  kable( . )
+```
+
+Total sites identified: `r sum_total`<br>
+Unique sites identified: `r sum_unique`<br>
+Percent unique: `r sprintf( fmt = "%.2f", (sum_unique / sum_total ) * 100. )`<br>
+
+```{r genome_sizes}
+genome_sizes = tibble()
+
+for (idx in 1:dim( samples )[1]) {
+  curr_name <- samples$filename[ idx ]
+  curr_fname <- paste0( curr_name, "_genome_size.csv" )
+  curr_fpath <- here::here( 'R_analysis', curr_fname )
+  
+  temp <- read_csv( file = curr_fpath ) %>%
+    cbind( ., short_name = samples$short_name[ idx ] )
+  
+  genome_sizes <- rbind( genome_sizes, temp )
+}
+```
+
+```{r site_per_mb}
+sites_per_mb <- merge( x = total_sites, y = genome_sizes, by = "short_name" ) %>%
+  mutate( .data = ., total_per_mb = sprintf( fmt = "%.2f", total_sites / MbGenome ) ) %>%
+  mutate( .data = ., unique_per_mb = sprintf( fmt = "%.1f", unique_sites / MbGenome ) ) %>%
+  arrange( .data = ., MbGenome )
+```
+
+## Table - sites per megabase of genome
+```{r table_sites_per_megabase}
+select( .data = sites_per_mb, -MbGenome ) %>%
+  kable( . )
+```
+
+Avg sites / Mb: `r mean( as.numeric( sites_per_mb$total_per_mb ) ) %>% sprintf( fmt="%.2f", . )`<br>
+Avg unique sites / Mb: `r mean( as.numeric( sites_per_mb$unique_per_mb ) ) %>% sprintf( fmt = "%.1f", . )`<br>
+
+Site every: `r (1E6 / (mean( as.numeric( sites_per_mb$total_per_mb ) )) ) %>% sprintf( fmt="%.1f", . )`<br>
+Unique site every: `r (1E6 / (mean( as.numeric( sites_per_mb$unique_per_mb ) )) ) %>% sprintf( fmt="%.1f", . )`<br>
+
+# Gene overlap analysis
+```{r gene_overlaps}
+geneCuts <- tibble()
+
+for (idx in 1:dim( samples )[1]) {
+  curr_name <- samples$filename[ idx ]
+  curr_fname <- paste0( curr_name, "_cutsPerGene.csv.gz" )
+  curr_fpath <- here::here( 'R_analysis', curr_fname )
+  
+  temp <- read_csv( file = curr_fpath )
+  
+  geneCount <- pull( .data = temp, gene_id ) %>%
+    unique( . ) %>%
+    length( . )
+  
+  genesCut <- filter( .data = temp, TotalSites > 0 ) %>%
+    pull( .data = ., gene_id ) %>%
+    unique( . ) %>%
+    length( . )
+  
+  genesUniqueCut <- filter( .data = temp, UniqueSites > 0 ) %>%
+    pull( .data = ., gene_id ) %>%
+    unique( . ) %>%
+    length( . )
+  
+  fractionCut <- genesCut / geneCount
+  
+  fractionUniqueCut <- genesUniqueCut / geneCount
+  
+  medPerGene <- median( temp$TotalSites )
+  medUniquePerGene <- median( temp$UniqueSites )
+  
+  geneCuts <- data.frame( filename = curr_name, 
+              Genes = geneCount,
+              Cut = fractionCut,
+              UniquelyCut = fractionUniqueCut,
+              MedSites = medPerGene,
+              MedUniqSites = medUniquePerGene ) %>%
+    rbind( geneCuts, . )
+}
+```
+
+## Table -- cuts per gene
+```{r cuts_table}
+geneCuts %>%
+  mutate( .data = ., Cuts = sprintf( "%.2f", Cut * 100.0 ) ) %>%
+  mutate( .data = ., UniqueCuts = sprintf( "%.2f", UniquelyCut * 100.0 ) ) %>%
+  merge( x = ., y = select( .data = samples, filename, short_name, abbreviation ) ) %>%
+  mutate( .data = ., short_name = factor( short_name, levels = short_name_levels ) ) %>%
+  select( .data = ., short_name, Genes, Cuts, UniqueCuts, MedSites, MedUniqSites ) %>%
+  arrange( short_name ) %>%
+  kable( . )
+```
+
+```{r range_of_cutters}
+low_per_gene <- min( geneCuts$MedSites )
+high_per_gene <- max( geneCuts$MedSites )
+low_uniq_per_gene <- min( geneCuts$MedUniqSites )
+high_uniq_per_gene <- max( geneCuts$MedUniqSites )
+```
+
+Standard sites: `r low_per_gene` to `r high_per_gene`<br>
+Unique sites: `r low_uniq_per_gene` to `r high_uniq_per_gene`<br>
+
+# PAM site analysis
+```{r pams}
+pam_sites = tibble()
+
+for (idx in 1:dim( samples )[1]) {
+  curr_name <- samples$filename[ idx ]
+  curr_fname <- paste0( curr_name, "_pam_count.csv" )
+  curr_fpath <- here::here( 'R_analysis', curr_fname )
+  
+  temp <- read_csv( file = curr_fpath ) %>%
+    cbind( ., short_name = samples$short_name[ idx ] )
+  
+  pam_sites <- rbind( pam_sites, temp )
+}
+
+pam_sites <- pam_sites %>%
+  rename( .data = ., Counts = AllPam ) %>%
+  spread( data = ., key = 'Unique', value = 'Counts' ) %>%
+  rename( .data = ., Unique = `TRUE` ) %>%
+  rename( .data = ., NonUnique = `FALSE` ) %>%
+  mutate( .data = ., Total = Unique + NonUnique )
+
+melted_pams <- melt( pam_sites )
+
+pam_sums <- melted_pams %>%
+  group_by( short_name, variable ) %>%
+  summarize(
+    sums = sum( value )
+  )
+
+melted_pams <- melted_pams %>%
+  rename( .data = ., count = value ) %>%
+  merge( x = ., y = pam_sums, by = c( 'short_name', 'variable' ) ) %>%
+  mutate( .data = ., fractional = count / sums )
+```
+
+## Figure - PAM usage
+```{r stacked_bar_chart}
+melted_pams %>%
+  filter( variable != "NonUnique" ) %>%
+  merge( x = , y = select( samples, abbreviation, short_name ) ) %>%
+  select( .data = ., abbreviation, variable, PAM, fractional ) %>%
+  ggplot( data = ., mapping = aes( x = abbreviation, y = fractional, fill = PAM )) +
+  theme_bw() +
+  geom_bar( stat = 'identity', colour = 'black' ) +
+  facet_wrap( ~variable ) +
+  ylab( "Fraction of PAM sites" ) +
+  xlab( "Species" ) +
+  gg_bigger_texts +
+  scale_fill_manual( values = reds4Palette ) +
+  theme( axis.text.x = element_text( face = 'italic' ) ) +
+  gg_no_x_grid +
+  gg_no_y_grid
+```
+
+```{r stacked_bar_chart_kable}
+melted_pams %>%
+  filter( variable != "NonUnique" ) %>%
+  kable( . )
+```
+
+# PAM GC content analysis
+```{r load_gc_content}
+gc_content = tibble()
+
+for (idx in 1:dim( samples )[1]) {
+  curr_name <- samples$filename[ idx ]
+  curr_fname <- paste0( curr_name, "_gcPerc.txt" )
+  curr_fpath <- here::here( 'gc_content', curr_fname )
+  
+  temp <- read_csv( file = curr_fpath, progress = FALSE, col_names = 'percent_gc' ) %>%
+    cbind( ., short_name = samples$short_name[ idx ] )
+  
+  gc_content <- rbind( gc_content, temp )
+}
+```
+
+```{r pam_gc_content}
+pam_gc <- pam_sites %>%
+  filter( .data = ., PAM %in% c( 'TTCC', 'TTCG' ) ) %>%
+  group_by( short_name ) %>%
+  summarize(
+    gc_count = sum( Total ) ) %>%
+  merge( x = ., y = filter( .data = pam_sums, variable == "Total" ), by = 'short_name' ) %>%
+  select( .data = ., -variable ) %>%
+  mutate( .data = ., fraction_gc = gc_count / sums ) %>%
+  merge( x = ., y = gc_content, by = 'short_name' )
+
+binom_for_purrr <- function( input ) {
+  model = with( input, binom.test( x = gc_count, n = sums, p = percent_gc, alternative = 'less' ) )
+  data.frame( P_binom = model$p.value, estimate = model$estimate ) %>%
+    return( . )
+}
+
+pam_gc_test <- pam_gc %>%
+  group_by( short_name ) %>%
+  nest( data = . ) %>%
+  mutate( .data = ., binom_stuff = map( .x = data, .f = binom_for_purrr ) ) %>%
+  unnest( . ) %>%
+  arrange( .data = ., short_name )
+
+pam_gc_test$P_adj = p.adjust( pam_gc_test$P_binom )
+```
+
+## Table PAM stats
+```{r pam_kable}
+kable( pam_gc_test )
+
+pam_gc %>%
+  mutate( .data = ., pam_usage = case_when(
+    fraction_gc < percent_gc ~ "LessThanExpected",
+    TRUE ~ "GreaterOrEqualToExpected"
+  )) %>%
+  arrange( short_name ) %>%
+  kable( . )
+```
+
+# Session info
+```{r versions}
+Sys.time()
+
+getwd()
+  
+sessionInfo()
+```

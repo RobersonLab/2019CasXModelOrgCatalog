@@ -1,0 +1,23 @@
+filename	name	short_name	abbreviation	global	mouse	gtf	fasta
+saccharomyces_cerevisiae	Saccharomyces cerevisiae	S. cerevisiae	Sc	TRUE	FALSE	Saccharomyces_cerevisiae.R64-1-1.95.gtf.gz	
+caenorhabditis_elegans	Caenorhabditis elegans	C. elegans	Ce	TRUE	FALSE	Caenorhabditis_elegans.WBcel235.95.gtf.gz	
+drosophila_melanogaster	Drosophila melanogaster	D. melanogaster	Dm	TRUE	FALSE	Drosophila_melanogaster.BDGP6.95.gtf.gz	
+danio_rerio	Danio rerio	D. rerio	Dr	TRUE	FALSE	Danio_rerio.GRCz11.95.gtf.gz	
+mus_musculus	Mus musculus	M. musculus	Mm	TRUE	TRUE	Mus_musculus.GRCm38.95.gtf.gz	
+mus_musculus_129s1svimj	Mus musculus 129S1/SvImJ	M. musculus 129S1/SvImJ	Mm_129s1	FALSE	TRUE	Mus_musculus_129s1svimj.129S1_SvImJ_v1.95.gtf.gz	
+mus_musculus_aj	Mus musculus A/J	M. musculus A/J	Mm_Aj	FALSE	TRUE	Mus_musculus_aj.A_J_v1.95.gtf.gz	
+mus_musculus_akrj	Mus musculus AKR/J	M. musculus AKR/J	Mm_Akr	FALSE	TRUE	Mus_musculus_akrj.AKR_J_v1.95.gtf.gz	
+mus_musculus_balbcj	Mus musculus BALB/cJ	M. musculus BALB/cJ	Mm_Balb	FALSE	TRUE	Mus_musculus_balbcj.BALB_cJ_v1.95.gtf.gz	
+mus_musculus_c3hhej	Mus musculus C3H/HeJ	M. musculus C3H/HeJ	Mm_C3h	FALSE	TRUE	Mus_musculus_c3hhej.C3H_HeJ_v1.95.gtf.gz	
+mus_musculus_c57bl6nj	Mus musculus C57BL/6NJ	M. musculus C57BL/6NJ	Mm_C57bl	FALSE	TRUE	Mus_musculus_c57bl6nj.C57BL_6NJ_v1.95.gtf.gz	
+mus_musculus_casteij	Mus musculus CAST/EiJ	M. musculus CAST/EiJ	Mm_Cast	FALSE	TRUE	Mus_musculus_casteij.CAST_EiJ_v1.95.gtf.gz	
+mus_musculus_cbaj	Mus musculus CBA/J	M. musculus CBA/J	Mm_Cba	FALSE	TRUE	Mus_musculus_cbaj.CBA_J_v1.95.gtf.gz	
+mus_musculus_dba2j	Mus musculus DBA/2J	M. musculus DBA/2J	Mm_Dba	FALSE	TRUE	Mus_musculus_dba2j.DBA_2J_v1.95.gtf.gz	
+mus_musculus_fvbnj	Mus musculus FVB/NJ	M. musculus FVB/NJ	Mm_Fvb	FALSE	TRUE	Mus_musculus_fvbnj.FVB_NJ_v1.95.gtf.gz	
+mus_musculus_lpj	Mus musculus LP/J	M. musculus LP/J	Mm_Lp	FALSE	TRUE	Mus_musculus_lpj.LP_J_v1.95.gtf.gz	
+mus_musculus_nodshiltj	Mus musculus NOD/ShiLtJ	M. musculus NOD/ShiLtJ	Mm_Nod	FALSE	TRUE	Mus_musculus_nodshiltj.NOD_ShiLtJ_v1.95.gtf.gz	
+mus_musculus_nzohlltj	Mus musculus NZO/HlLtJ	M. musculus NZO/HlLtJ	Mm_Nzo	FALSE	TRUE	Mus_musculus_nzohlltj.NZO_HlLtJ_v1.95.gtf.gz	
+mus_musculus_pwkphj	Mus musculus PWK/PhJ	M. musculus PWK/PhJ	Mm_Pwk	FALSE	TRUE	Mus_musculus_pwkphj.PWK_PhJ_v1.95.gtf.gz	
+mus_musculus_wsbeij	Mus musculus WSB/EiJ	M. musculus WSB/EiJ	Mm_Wsb	FALSE	TRUE	Mus_musculus_wsbeij.WSB_EiJ_v1.95.gtf.gz	
+rattus_norvegicus	Rattus norvegicus	R. norvegicus	Rn	TRUE	FALSE	Rattus_norvegicus.Rnor_6.0.95.gtf.gz	
+homo_sapiens	Homo sapiens	H. sapiens	Hs	TRUE	FALSE	Homo_sapiens.GRCh38.95.gtf.gz	

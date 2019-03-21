@@ -1,0 +1,103 @@
+---
+title: "Mouse correlation matrix"
+author: "Eli"
+date: "March 8, 2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libraries}
+library( here )
+library( tidyverse )
+library( reshape2 )
+```
+
+```{r set_figure_output}
+figure_directory <- paste0( here::here( 'figures' ), '/' )
+figure_directory
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	fig.path = figure_directory,
+	fig.keep = 'all',
+	dpi = 300,
+	fig.width = 11,
+	fig.height = 8.5,
+	#dev = 'tiff'
+	dev = 'png'
+)
+```
+
+```{r ggplot_modifiers}
+source( file = here::here( "ggplot_modifiers.R" ) )
+```
+
+```{r mouse_samples}
+samples <- read_tsv( file = here::here( "names_experiments_table.txt" ) ) %>%
+  filter( mouse == TRUE ) %>%
+  mutate( .data = ., plot_name = str_replace( string = name, pattern = "Mus musculus ", replacement = "" ) )
+
+plot_name_set <- select( .data = samples, filename, plot_name )
+
+plot_name_vector <- plot_name_set$plot_name
+names( plot_name_vector ) = plot_name_set$filename
+
+mouse_samples <- pull( .data = samples, filename )
+```
+
+```{r read_matrix}
+hamming <- read_csv( file = here::here( "R_analysis", "mouse_hamming_distance.csv" ), col_names = TRUE ) %>%
+  as.data.frame( . ) %>%
+  column_to_rownames( df = ., var = 'X1' ) %>%
+  as.matrix( . )
+
+rownames( hamming ) = plot_name_vector[ rownames( hamming ) ]
+colnames( hamming ) = plot_name_vector[ colnames( hamming ) ]
+
+lower_similarity_triangle <- hamming
+lower_similarity_triangle[ upper.tri( lower_similarity_triangle ) ] <- NA
+
+melted_hamming <- melt( lower_similarity_triangle ) %>%
+  mutate( .data = ., display_value = sprintf( fmt = "%.3f", round( value, 3 ) ) ) %>%
+  mutate( .data = ., display_value = case_when(
+    display_value == 'NA' ~ NA_character_,
+    TRUE ~ display_value
+  ))
+```
+
+```{r mouse_strain_hamming_distance}
+ggplot( data = melted_hamming, aes( x = Var1, y = Var2, fill = value ) ) +
+  theme_minimal() +
+  theme_bw() +
+  geom_tile( color = 'white' ) +
+  scale_fill_gradient2(
+    low = reds3Palette[1],
+    mid = reds3Palette[2],
+    high = reds3Palette[3],
+    midpoint = mean( melted_hamming$value, na.rm = TRUE ),
+    name = "Hamming distance",
+    na.value = 'white'
+    ) +
+  geom_text( aes( label = display_value ), color = 'black' ) +
+  gg_no_x_label +
+  gg_no_y_label +
+  gg_angled_x_text +
+  theme( axis.text.y = element_text( color = 'black' ) ) +
+  theme(
+    legend.position = c( 0.15, 0.95 ),
+    legend.direction = 'horizontal'
+  )
+```
+
+# Session info
+```{r versions}
+Sys.time()
+
+getwd()
+  
+sessionInfo()
+```

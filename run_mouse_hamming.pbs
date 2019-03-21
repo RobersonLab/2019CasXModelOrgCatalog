@@ -1,0 +1,28 @@
+#PBS -S /bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=40g
+#PBS -l walltime=23:59:00
+#PBS -m ae
+#PBS -M eroberson@wustl.edu
+#PBS -q old
+
+###############################
+# Move to execution directory #
+###############################
+cd $PBS_O_WORKDIR
+
+####################
+# load virtual env #
+####################
+source activate generalpy3
+
+#######
+# run #
+#######
+python mouse_hamming_distance.py
+
+####################
+# drop virtual env #
+####################
+source deactivate
+

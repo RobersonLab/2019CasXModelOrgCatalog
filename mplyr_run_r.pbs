@@ -1,0 +1,35 @@
+#PBS -S /bin/bash
+#PBS -l nodes=1:ppn=15
+#PBS -l mem=96g
+#PBS -l walltime=167:59:00
+
+###############################
+# Move to execution directory #
+###############################
+cd $PBS_O_WORKDIR
+
+##########
+# load R #
+##########
+module load R
+
+R --vanilla < mdplyr_casx_analysis.R 1>logs/R_initial.log 2>&1
+
+######################
+# zip it             #
+# zip it good (best) #
+######################
+for CUTS in `R_analysis/*_cutsPerGene.csv`
+do
+	pigz --best -p $PBS_NUM_PPN $CUTS
+done
+
+for ANNOTATION in `R_analysis/*_annotated_Casx_sites.csv`
+do
+	pigz --best -p $PBS_NUM_PPN $ANNOTATION
+done
+
+for TARGETS in `R_analysis/*_targets.csv`
+do
+	pigz --best -p $PBS_NUM_PPN $TARGETS
+done
