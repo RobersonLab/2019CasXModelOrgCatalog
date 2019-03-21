@@ -93,6 +93,48 @@ ggplot( data = melted_hamming, aes( x = Var1, y = Var2, fill = value ) ) +
   )
 ```
 
+```{r reordered_hamming_matrix}
+reorder_cormat <- function( input_matrix ) {
+  dist_obj <- as.dist( input_matrix )
+  clustered_distances <- hclust( dist_obj )
+  return( input_matrix[ clustered_distances$order, clustered_distances$order ] )
+}
+
+cormat <- reorder_cormat( hamming )
+
+lower_similarity_triangle <- cormat
+lower_similarity_triangle[ upper.tri( lower_similarity_triangle ) ] <- NA
+
+melted_hamming <- melt( lower_similarity_triangle ) %>%
+  mutate( .data = ., display_value = sprintf( fmt = "%.3f", round( value, 3 ) ) ) %>%
+  mutate( .data = ., display_value = case_when(
+    display_value == 'NA' ~ NA_character_,
+    TRUE ~ display_value
+  ))
+
+ggplot( data = melted_hamming, aes( x = Var1, y = Var2, fill = value ) ) +
+  theme_minimal() +
+  theme_bw() +
+  geom_tile( color = 'white' ) +
+  scale_fill_gradient2(
+    low = reds3Palette[1],
+    mid = reds3Palette[2],
+    high = reds3Palette[3],
+    midpoint = mean( melted_hamming$value, na.rm = TRUE ),
+    name = "Hamming distance",
+    na.value = 'white'
+    ) +
+  geom_text( aes( label = display_value ), color = 'black' ) +
+  gg_no_x_label +
+  gg_no_y_label +
+  gg_angled_x_text +
+  theme( axis.text.y = element_text( color = 'black' ) ) +
+  theme(
+    legend.position = c( 0.15, 0.95 ),
+    legend.direction = 'horizontal'
+  )
+```
+
 # Session info
 ```{r versions}
 Sys.time()
