@@ -298,6 +298,21 @@ pam_gc %>%
   kable( . )
 ```
 
+```{r updated_pam_sprintf}
+pam_gc_test %>%
+  mutate( .data = ., Diff = case_when(
+    fraction_gc < percent_gc ~ "LessThanExpected",
+    TRUE ~ "GreaterOrEqualToExpected"
+  )) %>%
+  rename( .data = ., Species = short_name, FractionGCpam = fraction_gc ) %>%
+  rename( .data = ., GenomeGC = percent_gc ) %>%
+  mutate( .data = ., Pvalue = sprintf( fmt = "%.2e", P_binom ) ) %>%
+  mutate( .data = ., FDR_pvalue = sprintf( fmt = "%.2e", P_adj ) ) %>%
+  select( .data = ., Species, Diff, GenomeGC, estimate, Pvalue, FDR_pvalue ) %>%
+  arrange( Species ) %>%
+  kable( . )
+```
+
 # Session info
 ```{r versions}
 Sys.time()
