@@ -59,6 +59,7 @@ Number of CPUs used by multidplyr during annotation.
 
 ### 5 - Choose your adventure!
 [Path A - Run only with Make.](#identify-and-annotate-with-makefile)
+
 [Path B - Run initial identification with Make. Annotate on a PBS / Torque HPC cluster.](#identify-with-make-and-annotate-with-hpc)
 
 #### Identify and annotate with makefile
