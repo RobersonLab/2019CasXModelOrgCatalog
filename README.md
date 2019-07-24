@@ -1,7 +1,7 @@
 # 2019 CasX model organism site catalog
 Repository for scripts associated with manuscript.
 
-Associated paper:
+Associated paper: [A catalog of CasX genome editing sites in common model organisms](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-019-5924-6)
 
 ## Requirements
 ### General
